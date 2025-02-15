@@ -1,27 +1,22 @@
-import openai
-import os
 from flask import Flask, request, jsonify
 
-app = Flask(__name__)  # This creates the Flask app
+app = Flask(__name__)
 
-# Initialize the OpenAI client correctly for the latest API version
-openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+@app.route("/")
+def home():
+    return "ChatGPT Wrapper API is running!"
 
-# Route for ChatGPT API
-@app.route('/chat', methods=['POST'])
+@app.route("/chat", methods=["POST"])
 def chat():
-    user_input = request.json.get("message")
+    data = request.get_json()
+    if not data or "message" not in data:
+        return jsonify({"error": "Invalid request. Please send a JSON payload with a 'message' field."}), 400
 
-    try:
-        response = openai_client.chat.completions.create(  # Correct method
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": user_input}]
-        )
+    message = data["message"]
+    response_text = f"You said: {message}"  # Replace with OpenAI API call if needed
 
-        return jsonify({"response": response.choices[0].message.content})
+    return jsonify({"response": response_text})
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
 
-if __name__ == '__main__':
-    app.run(debug=True)
